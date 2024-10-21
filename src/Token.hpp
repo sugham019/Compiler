@@ -23,7 +23,8 @@ struct TokenType{
         CONST,
         FLOAT,
         RETURN,
-        FUNCTION,
+        FUNC,
+        WHILE,
         NIL
     }keywordType = KeywordType::NIL;    
 

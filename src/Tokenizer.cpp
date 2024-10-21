@@ -8,13 +8,13 @@ Tokenizer::Tokenizer(const std::string& filename) : m_filename(filename){
 namespace{
 
     constexpr int maxKeywordLength = 12;
-    constexpr int totalKeywords = 10;
+    constexpr int totalKeywords = 11;
 
     char keywords[totalKeywords][maxKeywordLength] = {
         "int", "char", "void",
         "import", "if", "else",
         "const", "float", "return",
-        "func"
+        "func", "while"
     };
     
     /*
@@ -25,7 +25,8 @@ namespace{
     Keyword keywordTypes[totalKeywords] = {
         Keyword::INT, Keyword::CHAR, Keyword::VOID,
         Keyword::IMPORT, Keyword::IF, Keyword::ELSE,
-        Keyword::CONST, Keyword::FLOAT, Keyword::RETURN
+        Keyword::CONST, Keyword::FLOAT, Keyword::RETURN,
+        Keyword::FUNC, Keyword::WHILE
     };
 
     bool isSymbol(char ch){
