@@ -44,12 +44,14 @@ private:
     void genInstruction(ast::AssignmentStatement& declarativeStatement);
     void genInstruction(ast::ReturnStatement& returnStatement);
     void genInstruction(ast::ConditionalStatement& conditionalStatement);
+    void genInstruction(ast::WhileLoop& whileLoop);
     llvm::Value* genInstruction(ast::FunctionCallStatement& functionCallStatement);
 
     std::unordered_map<std::string_view, llvm::AllocaInst*> m_variables;    
 
     std::unique_ptr<llvm::Module> m_module;
     std::unique_ptr<llvm::IRBuilder<>> m_IRBuilder;
+
     static std::unique_ptr<llvm::LLVMContext> llvmContext;
     static llvm::Type* intType;
     static llvm::Type* charType;

@@ -299,6 +299,31 @@ void LlvmIRGenerator::genInstruction(ast::ReturnStatement& returnStatment){
     m_IRBuilder->SetInsertPoint(finalBlock);
 }
 
+void LlvmIRGenerator::genInstruction(ast::WhileLoop& whileLoop){
+    llvm::Value* conditionalExpr = computeExpression(*whileLoop.m_expr);
+    llvm::BasicBlock* currentBlock = m_IRBuilder->GetInsertBlock();
+    llvm::Function* currentFunc = currentBlock->getParent();
+    llvm::BasicBlock* loopBlock = llvm::BasicBlock::Create(*llvmContext, "loop", currentFunc);
+    llvm::BasicBlock* finalBlock = llvm::BasicBlock::Create(*llvmContext, "final", currentFunc);
+
+    m_IRBuilder->CreateCondBr(conditionalExpr, loopBlock, finalBlock);
+
+    m_IRBuilder->SetInsertPoint(loopBlock);
+    bool hasReturnStatement = false;
+    for(ast::Statement* stmnt: whileLoop.m_stmnts){
+        genInstruction(*stmnt);
+        if(stmnt->m_type == ast::Statement::Type::RETURN){
+            hasReturnStatement = true;
+            break;
+        }
+    }
+    if(!hasReturnStatement){
+        conditionalExpr = computeExpression(*whileLoop.m_expr);
+        m_IRBuilder->CreateCondBr(conditionalExpr, loopBlock, finalBlock);
+    }
+    m_IRBuilder->SetInsertPoint(finalBlock); 
+}
+
 void LlvmIRGenerator::genInstruction(ast::Statement& statement){
     switch (statement.m_type) {
 
@@ -316,6 +341,9 @@ void LlvmIRGenerator::genInstruction(ast::Statement& statement){
             break;
         case ast::Statement::Type::RETURN:
             genInstruction(*statement.m_data.returnStatement);
+            break;
+        case ast::Statement::Type::WHILE_LOOP:
+            genInstruction(*statement.m_data.whileLoop);
             break;
     };
 }
@@ -335,6 +363,7 @@ llvm::Function* LlvmIRGenerator::genFunction(ast::Function& function){
         funcType = llvm::FunctionType::get(returnType, llvm::ArrayRef<llvm::Type*>(paramsType), false);
     }
     llvm::Function* func = llvm::Function::Create(funcType, llvm::GlobalValue::ExternalLinkage, identifier, *m_module);
+
     llvm::BasicBlock* entryBlock = llvm::BasicBlock::Create(*llvmContext, "entry", func);
     m_IRBuilder->SetInsertPoint(entryBlock);
     std::list<ast::Parameter>::iterator param = function.m_parameters.begin();
