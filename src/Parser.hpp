@@ -18,11 +18,12 @@ public:
     ast::File evaluate();
 
 private:
-    ast::Function* evaluateFunctionDefinition(Token& returnType);
+    ast::Function* evaluateFunctionDefinition();
     ast::Statement* evaluateStatement();
     TokenBuffer prefetchToken(char end);
     ast::DeclarativeStatement* evaluateDeclarativeStatement(Token& keyword, bool isConst);
     ast::ConditionalStatement* evaluateIfConditionalStatement();
+    ast::WhileLoop* evaluateWhileLoop();
     ast::ReturnStatement* evaluateReturnStatement();
     bool extractParams(std::list<ast::Parameter>& params);
     ast::AssignmentStatement* evaluateAssignmentStatement(Token& identifier);

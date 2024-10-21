@@ -90,8 +90,8 @@ File Parser::evaluate(){
             Token importPackage = verifyNextToken(Type::STRING_LITERAL);
             Token* importPackageCopy = createTokenCopy(importPackage);
             file.importPackages.push_back(importPackageCopy); 
-        }else if(isDataType(currentToken) || isKeyword(currentToken, Keyword::VOID)){
-            Function* function = evaluateFunctionDefinition(currentToken);
+        }else if(isKeyword(currentToken, Keyword::FUNC)){
+            Function* function = evaluateFunctionDefinition();
             file.functions.push_back(function);
         }else{
             reportError(error::INVALID_EXPR, currentToken);
@@ -101,11 +101,15 @@ File Parser::evaluate(){
     return file;
 }
 
-Function* Parser::evaluateFunctionDefinition(Token& returnType){
+Function* Parser::evaluateFunctionDefinition(){
+    Token expectedReturnType = m_tokenizer.nextToken();
+    if(!isKeyword(expectedReturnType, Keyword::VOID) && !isDataType(expectedReturnType)){
+        reportError("Expectec valid return type ", expectedReturnType);
+    }
     Token identifier = verifyNextToken(Type::IDENTIFIER);
     verifyNextToken('(');
 
-    Token* returnTypeCopy = createTokenCopy(returnType);
+    Token* returnTypeCopy = createTokenCopy(expectedReturnType);
     Token* identifierCopy = createTokenCopy(identifier);
     Function* function = new Function(returnTypeCopy, identifierCopy);
 
@@ -167,9 +171,25 @@ ReturnStatement* Parser::evaluateReturnStatement(){
     return returnStatement;
 }
 
+WhileLoop* Parser::evaluateWhileLoop(){
+    verifyNextToken('(');
+    TokenBuffer exprTokens = prefetchToken(')');
+    Expression* expr = evaluateExpression(exprTokens.tokens, 0, exprTokens.size-1);
+    WhileLoop* whileLoop = new WhileLoop(expr);
+    verifyNextToken('{');
+
+    Statement* stmnt = evaluateStatement();
+    while(stmnt != nullptr){
+        whileLoop->m_stmnts.push_back(stmnt);
+        stmnt = evaluateStatement();
+    }
+    return whileLoop;
+}
+
 Statement* Parser::evaluateStatement(){
     Token startToken = m_tokenizer.nextToken();
     if(isSymbol(startToken, '}')) return nullptr;
+
     if(isDataType(startToken)){
         DeclarativeStatement* declarativeStatement = evaluateDeclarativeStatement(startToken, false);
         return new Statement(declarativeStatement);
@@ -193,6 +213,9 @@ Statement* Parser::evaluateStatement(){
     }else if(isKeyword(startToken, Keyword::RETURN)){
         ReturnStatement* returnStatement = evaluateReturnStatement();
         return new Statement(returnStatement);
+    }else if(isKeyword(startToken, Keyword::WHILE)){
+        WhileLoop* whileLoop = evaluateWhileLoop();
+        return new Statement(whileLoop);
     }
     reportError("Could not evaluate statement", startToken);
     return nullptr;
