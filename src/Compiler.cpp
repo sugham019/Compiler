@@ -1,6 +1,7 @@
 #include "Compiler.hpp"
 #include "AST.hpp"
 #include "ErrorHandler.hpp"
+#include <cstdio>
 #include "IRGenerator.hpp"
 #include "Parser.hpp"
 #include "Tokenizer.hpp"
@@ -9,10 +10,25 @@ Compiler::Compiler(IRGenerator& irGenerator) : m_irGenerator(irGenerator){
 
 }
 
-void Compiler::compile(const std::filesystem::path& srcFilepath, const std::filesystem::path& outputFilepath){
+void Compiler::compileToIR(const std::filesystem::path& srcFilepath, const std::filesystem::path& outputFilepath){
     ast::File syntaxTree = generateAST(srcFilepath);
     performIRGeneration(syntaxTree, srcFilepath.filename().string());
     m_irGenerator.saveToFile(outputFilepath);
+}
+
+void Compiler::buildExec(const std::string& irFilePath, const std::string& outputfile,  Platform platform){
+    std::string tempObj = outputfile+".o";
+    std::string compileToObjCommand = "llc -filetype=obj "+irFilePath+" -o "+tempObj;
+    std::string linkCommand;
+    
+    if(platform == Platform::WIN){
+        linkCommand = "lld-link "+tempObj+" "+commonLibs+" "+winLibs+" -o "+outputfile;
+    }else if(platform == Platform::LINUX){
+        linkCommand = "ld.lld "+tempObj+" "+commonLibs+" "+linuxLibs+" -o "+outputfile;
+    }
+    system(compileToObjCommand.c_str());
+    system(linkCommand.c_str());
+    remove(tempObj.c_str());
 }
 
 ast::File Compiler::generateAST(const std::filesystem::path& srcFilepath){
@@ -30,7 +46,7 @@ void Compiler::performIRGeneration(const ast::File& file, const std::string& fil
 
         auto searchResult = std::find(m_files.begin(), m_files.end(), packageName);
         if(searchResult != m_files.end()){
-            reportError("Cross dependency among files is not allowed", *package);
+            continue;
         }
         ast::File syntaxTree = generateAST(packagePathStr);
         performIRGeneration(syntaxTree, packageName);

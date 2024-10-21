@@ -5,16 +5,25 @@
 #include <string>
 #include <list>
 
+enum class Platform{
+    WIN,
+    LINUX
+};
+
 class Compiler{
     
 public:
     Compiler(IRGenerator& irGenerator);
-    void compile(const std::filesystem::path& srcFilepath, const std::filesystem::path& outputFilepath);
+    void compileToIR(const std::filesystem::path& srcFilepath, const std::filesystem::path& outputIrFilepath);
+    void buildExec(const std::string& irFilePath, const std::string& outputfile,  Platform platform);
 
 private:
     void performIRGeneration(const ast::File& file, const std::string& filename);
     ast::File generateAST(const std::filesystem::path& srcFilepath);
-
+    
+    const std::string commonLibs = "";
+    const std::string linuxLibs = "liblinux.a";
+    const std::string winLibs = "";
     IRGenerator& m_irGenerator;
     std::list<std::string> m_files;
 };
