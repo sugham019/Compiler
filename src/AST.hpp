@@ -69,6 +69,19 @@ struct ConditionalStatement{
     ~ConditionalStatement();
 };
 
+struct WhileLoop{
+    Expression* m_expr;
+    std::list<Statement*> m_stmnts;
+
+    WhileLoop(Expression* expr)
+    : m_expr(expr) {
+
+    }
+
+    ~WhileLoop();
+};
+
+
 struct Parameter{
     Token* m_dataType;
     Token* m_identifier;
@@ -122,6 +135,8 @@ struct AssignmentStatement{
 
 };
 
+
+
 struct DeclarativeStatement{
     Token* m_dataType;
     Token* m_identifier;
@@ -152,6 +167,7 @@ struct Statement{
         ConditionalStatement* conditionalStatement;
         FunctionCallStatement* functionalCallStatement;
         ReturnStatement* returnStatement;
+        WhileLoop* whileLoop;
     } m_data;
 
     enum class Type: u_int8_t{
@@ -159,7 +175,8 @@ struct Statement{
         ASSIGNMENT,
         CONDITIONAL,
         FUNCTION_CALL,
-        RETURN
+        RETURN,
+        WHILE_LOOP
     } m_type;
 
     Statement(DeclarativeStatement* declarativeStatement){
@@ -180,6 +197,11 @@ struct Statement{
     Statement(FunctionCallStatement* functionCallStatement){
         m_data.functionalCallStatement = functionCallStatement;
         m_type = Type::FUNCTION_CALL;
+    }
+
+    Statement(WhileLoop* whileLoop){
+        m_data.whileLoop = whileLoop;
+        m_type = Type::WHILE_LOOP;
     }
 
     Statement(ReturnStatement* returnStatement){
@@ -415,10 +437,17 @@ inline Expression::~Expression(){
 }
 
 inline ConditionalStatement::~ConditionalStatement(){
-        delete m_else;
-        for(Statement* stmnt: m_stmnts){
-            delete stmnt;
-        } 
+    delete m_else;
+    for(Statement* stmnt: m_stmnts){
+        delete stmnt;
+    } 
+}
+
+inline WhileLoop::~WhileLoop(){
+    delete m_expr;
+    for(Statement* stmnt : m_stmnts){
+        delete stmnt;
     }
+}
 
 }
