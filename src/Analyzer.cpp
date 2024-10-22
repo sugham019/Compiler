@@ -64,7 +64,42 @@ void Analyzer::analyzeAssignmentStatement(ast::AssignmentStatement& assignmentSt
    performTypeChecking(*assignmentStatement.m_expression, dataType);
 }
 
+
+Keyword Analyzer::findFirstValueType(ast::Relational& relational){
+    ast::Factor& factor = *relational.m_additive->m_term->m_factor;
+
+    if(factor.operandType == ast::Factor::OperandType::VALUE){
+        Token& value = *factor.operand.value;
+        if(value.m_tokenType.type == Type::NUMERIC_LITERAL){
+            
+            if(value.m_tokenType.isFloatingPointValue){
+                return Keyword::FLOAT;
+            }
+            return Keyword::INT;
+        }else if(value.m_tokenType.type == Type::STRING_LITERAL){
+            return Keyword::CHAR;
+        }else if(value.m_tokenType.type == Type::IDENTIFIER){
+            return findVariableType(value);
+        }
+
+    }else if(factor.operandType == ast::Factor::OperandType::EXPR){
+        return findFirstValueType(*factor.operand.expression);
+    }else if(factor.operandType == ast::Factor::OperandType::FUNCTION_CALL){
+        return analyzeFunctionCallStatement(*factor.operand.functionCall);
+    }
+    return Keyword::NIL;
+}
+
+Keyword Analyzer::findFirstValueType(ast::Expression& expression){
+    return findFirstValueType(*expression.m_relational);
+}
+
+
 void Analyzer::analyzeConditionalStatement(ast::ConditionalStatement& conditionalStatement, ast::Function& currentFunction){
+    ast::Expression& expr = *conditionalStatement.m_expr;
+    Keyword expectedType = findFirstValueType(expr);
+    performTypeChecking(expr, expectedType);
+
     analyzeNestedScope(conditionalStatement.m_stmnts, currentFunction);
     if(conditionalStatement.m_else != nullptr){
         analyzeConditionalStatement(*conditionalStatement.m_else, currentFunction);
@@ -88,6 +123,10 @@ void Analyzer::analyzeReturnStatement(ast::ReturnStatement& returnStatement, ast
 }
 
 void Analyzer::analyzeWhileLoop(ast::WhileLoop& whileLoop, ast::Function& currentFunction){
+    ast::Expression& expr = *whileLoop.m_expr;
+    Keyword expectedType = findFirstValueType(expr);
+    performTypeChecking(expr, expectedType);
+
     analyzeNestedScope(whileLoop.m_stmnts, currentFunction);
 }
 
@@ -136,7 +175,7 @@ void Analyzer::analyzeStatement(ast::Statement& statement, ast::Function& curren
             analyzeReturnStatement(*statement.m_data.returnStatement, currentFunction);
             break;
         case ast::Statement::Type::WHILE_LOOP:
-            analyzeWhileLoop(*statement.m_data.whileLoop);
+            analyzeWhileLoop(*statement.m_data.whileLoop, currentFunction);
             break;
         }
 }
@@ -193,7 +232,6 @@ void Analyzer::performTypeChecking(ast::DeclarativeStatement& declarativeStateme
         performTypeChecking(*declarativeStatement.m_expression, dataTypeToken.m_tokenType.keywordType);
     }
 }
-
 
 void Analyzer::performTypeChecking(ast::Expression& expression, Keyword expectedDataType){
     performTypeChecking(*expression.m_relational, expectedDataType);

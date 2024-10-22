@@ -32,6 +32,9 @@ private:
     void performTypeChecking(ast::Factor& additive, Keyword expectedDataType);
     void performTypeChecking(ast::Statement& statement, ast::Function& function);
 
+    Keyword findFirstValueType(ast::Expression& expr);
+    Keyword findFirstValueType(ast::Relational& relational);
+
     const ErrorHandler& m_errorHandler;
     Keyword findVariableType(Token& identifier);
     std::list<SymbolTable> m_symbolTableList;
