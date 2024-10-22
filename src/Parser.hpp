@@ -1,4 +1,5 @@
 #pragma once
+#include "ErrorHandler.hpp"
 #include "Token.hpp"
 #include "Tokenizer.hpp"
 #include "AST.hpp"
@@ -14,7 +15,7 @@ struct TokenBuffer{
 class Parser{
 
 public:
-    Parser(Tokenizer& tokenizer);
+    Parser(Tokenizer& tokenizer, const ErrorHandler& errorHandler);
     ast::File evaluate();
 
 private:
@@ -38,6 +39,7 @@ private:
     Token verifyNextToken(Type tokenType);
     void extractArgsInFunctionCall(std::list<ast::Expression*>& args, Token* tokens, int start, int end);
 
+    const ErrorHandler& m_errorHandler;
     Tokenizer& m_tokenizer;
     constexpr static int MAX_TOKEN_BUFFER_SIZE = 120;
 };  

@@ -35,7 +35,7 @@ bool isSymbol(Token& token, char symbol){
 
 }
 
-Parser::Parser(Tokenizer& tokenizer): m_tokenizer(tokenizer){
+Parser::Parser(Tokenizer& tokenizer, const ErrorHandler& errorHandler): m_tokenizer(tokenizer), m_errorHandler(errorHandler){
 }
 
 TokenBuffer Parser::prefetchToken(char end){
@@ -50,7 +50,7 @@ TokenBuffer Parser::prefetchToken(char end){
         }
         
         if(tokenBuffer.size == MAX_TOKEN_BUFFER_SIZE){
-            reportError(error::EXPR_HUGE, temp);
+            m_errorHandler.reportError(error::EXPR_HUGE, temp);
         }
         tokenBuffer.tokens[tokenBuffer.size++] = std::move(temp);
         temp = m_tokenizer.nextToken();
@@ -61,7 +61,7 @@ TokenBuffer Parser::prefetchToken(char end){
 Token Parser::verifyNextToken(char symbol){
     Token nextToken = m_tokenizer.nextToken();
     if(!isSymbol(nextToken, symbol)){
-        reportError( std::string("Expected : ")+symbol, nextToken);
+        m_errorHandler.reportError( std::string("Expected : ")+symbol, nextToken);
     }
     return nextToken;
 }
@@ -69,7 +69,7 @@ Token Parser::verifyNextToken(char symbol){
 Token Parser::verifyNextToken(Type tokenType){
     Token nextToken = m_tokenizer.nextToken();
     if(!isType(nextToken, tokenType)){
-        reportError(error::INV_TOKEN, nextToken);
+        m_errorHandler.reportError(error::INV_TOKEN, nextToken);
     }
     return nextToken;
 }
@@ -77,7 +77,7 @@ Token Parser::verifyNextToken(Type tokenType){
 Token Parser::verifyNextToken(Keyword keywordType){
     Token nextToken = m_tokenizer.nextToken();
     if(!isKeyword(nextToken, keywordType)){
-        reportError(error::INV_TOKEN, nextToken);
+        m_errorHandler.reportError(error::INV_TOKEN, nextToken);
     }
     return nextToken;
 }
@@ -94,7 +94,7 @@ File Parser::evaluate(){
             Function* function = evaluateFunctionDefinition();
             file.functions.push_back(function);
         }else{
-            reportError(error::INVALID_EXPR, currentToken);
+            m_errorHandler.reportError(error::INVALID_EXPR, currentToken);
         }
         currentToken = m_tokenizer.nextToken();
     }
@@ -104,7 +104,7 @@ File Parser::evaluate(){
 Function* Parser::evaluateFunctionDefinition(){
     Token expectedReturnType = m_tokenizer.nextToken();
     if(!isKeyword(expectedReturnType, Keyword::VOID) && !isDataType(expectedReturnType)){
-        reportError("Expectec valid return type ", expectedReturnType);
+        m_errorHandler.reportError("Expectec valid return type ", expectedReturnType);
     }
     Token identifier = verifyNextToken(Type::IDENTIFIER);
     verifyNextToken('(');
@@ -153,7 +153,7 @@ ConditionalStatement* Parser::evaluateIfConditionalStatement(){
             }
             conditionalStatement->m_else = elseCondition;
         }else{
-            reportError("Expected {", nextToken1);
+            m_errorHandler.reportError("Expected {", nextToken1);
         }
     }
     return conditionalStatement;
@@ -217,7 +217,7 @@ Statement* Parser::evaluateStatement(){
         WhileLoop* whileLoop = evaluateWhileLoop();
         return new Statement(whileLoop);
     }
-    reportError("Could not evaluate statement", startToken);
+    m_errorHandler.reportError("Could not evaluate statement", startToken);
     return nullptr;
 }
 
@@ -238,12 +238,12 @@ bool Parser::extractParams(std::list<Parameter>& params){
         if(isSymbol(endToken, ',')){
             extractParams(params);
         }else if(!isSymbol(endToken, ')')){
-            reportError("Expected )", endToken);
+            m_errorHandler.reportError("Expected )", endToken);
         }
         return true;
     }
     if(isSymbol(dataType, ')')) return true;
-    reportError("Expected Datatype", dataType);
+    m_errorHandler.reportError("Expected Datatype", dataType);
     return false;
 }
 
@@ -298,7 +298,7 @@ DeclarativeStatement* Parser::evaluateDeclarativeStatement(Token& dataType, bool
         return new DeclarativeStatement(
             createTokenCopy(dataType), createTokenCopy(identifier), expression, isConst);
     }else{
-        reportError("Expected Semicolon", nextToken);
+        m_errorHandler.reportError("Expected Semicolon", nextToken);
         return nullptr;
     }
 }
@@ -315,7 +315,7 @@ Factor* Parser::evaluateFactor(Token* tokens, int start, int end){
     if(isType(firstToken, Type::IDENTIFIER)){
         if(isSymbol(tokens[start+1], '(')){
             if(!isSymbol(tokens[end], ')')){
-                reportError("Expected )", tokens[end]);
+                m_errorHandler.reportError("Expected )", tokens[end]);
             }
             std::list<Expression*> args;
             extractArgsInFunctionCall(args, tokens, start+2, end-1);
@@ -324,7 +324,7 @@ Factor* Parser::evaluateFactor(Token* tokens, int start, int end){
             
             return new Factor(functionCall);
         }else{
-            reportError("Invalid expression", tokens[start+1]);
+            m_errorHandler.reportError("Invalid expression", tokens[start+1]);
         }
     }
     Token& lastToken = tokens[end];

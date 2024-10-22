@@ -1,13 +1,14 @@
 #pragma once
 #include "AST.hpp"
+#include "ErrorHandler.hpp"
 #include "SymbolTable.hpp"
 #include "Token.hpp"
 #include <list>
-#include <vector>
 
 class SymbolTableHandler{
 
 public:
+    SymbolTableHandler(const ErrorHandler& errorHandler);
     void updateSymbolTable(ast::Function& function);
     void updateSymbolTable(ast::DeclarativeStatement& declarativeStatement);
     void updateSymbolTable(Keyword dataType, const std::string_view& identifier, bool isInitialized, bool isConst);
@@ -27,6 +28,7 @@ public:
     static SymbolTable standardLibFuncSymbols;
 
 private:
+    const ErrorHandler& m_errorHandler;
     bool variableSymbolExists(const std::string_view& identifier);
     bool functionSymbolExists(const std::string_view& identifier);
     std::list<SymbolTable> m_symbolTableList;

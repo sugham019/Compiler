@@ -1,8 +1,11 @@
 #include "Tokenizer.hpp"
 #include "ErrorHandler.hpp"
 
-Tokenizer::Tokenizer(const std::string& filename) : m_filename(filename){
-    loadFileData(filename);
+std::ifstream* Tokenizer::activeFile;
+
+Tokenizer::Tokenizer(std::ifstream& file, const ErrorHandler& errorHandler) 
+    : m_file(file), m_errorHandler(errorHandler){
+
 }
 
 namespace{
@@ -81,7 +84,7 @@ bool Tokenizer::processStringLiteral(Token& token){
         }
         updateBuffer(ch);
     }
-    reportError("Missing \" to terminate string", m_file);
+    m_errorHandler.reportError("Missing \" to terminate string", m_currentLineNum);
     return false;
 }
 
@@ -93,7 +96,7 @@ bool Tokenizer::processNumericLiteral(Token& token){
     while(m_file.get(ch)){
         if(isDotSymbol(ch)){
             if(dotSymbolFound){
-                reportError(error::INVALID_NUMERIC_LITERAL, m_file);
+                m_errorHandler.reportError(error::INVALID_NUMERIC_LITERAL, m_currentLineNum);
             }
             dotSymbolFound = true;
         }else if(!std::isdigit(ch)){
@@ -151,11 +154,4 @@ Token Tokenizer::nextToken() {
     copyFromBuffer(data);
     token = Token(TokenType(TokenType::Type::IDENTIFIER), data, m_bufferLength, m_currentLineNum);
     return token;
-}
-
-void Tokenizer::loadFileData(const std::string& filename){
-    m_file.open(filename);
-    if (!m_file.is_open()){
-        reportError("Error opening file : " + filename);
-    }
 }

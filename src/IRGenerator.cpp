@@ -67,7 +67,8 @@ void LlvmIRGenerator::saveToFile(const std::filesystem::path& outputFile){
     llvm::raw_fd_ostream output(outputFile.string(), error);
     m_module->print(output, nullptr);
     if(error){
-        reportError(error);
+        std::cerr << "Could not open file : "+ outputFile.string() << std::endl;
+        std::exit(EXIT_FAILURE);
     }
 }
 

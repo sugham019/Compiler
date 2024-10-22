@@ -1,5 +1,6 @@
 #pragma once
 #include "AST.hpp"
+#include "ErrorHandler.hpp"
 #include "SymbolTable.hpp"
 #include "Token.hpp"
 #include <list>
@@ -8,7 +9,7 @@
 class Analyzer{
 
 public:
-    Analyzer(ast::File& syntaxTree);
+    Analyzer(ast::File& syntaxTree, const ErrorHandler& errorHandler);
     void analyze();
     
 private:    
@@ -33,6 +34,7 @@ private:
     void performTypeChecking(ast::Factor& additive, Keyword expectedDataType);
     void performTypeChecking(ast::Statement& statement, ast::Function& function);
 
+    const ErrorHandler& m_errorHandler;
     Keyword findVariableType(Token& identifier);
     std::list<SymbolTable> m_symbolTableList;
     SymbolTableHandler m_symbolTableHandler;

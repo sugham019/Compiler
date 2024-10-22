@@ -4,12 +4,17 @@
 #include "AST.hpp"
 #include <system_error>
 
-void reportError(const char* msg, Token& token);
-void reportError(const char* msg, std::ifstream& file);
-void reportError(const std::string& msg);
-void reportError(const std::string& msg, Token& token);
-void reportError(const std::error_code& error);
-void reportError(const char* msg, ast::Expression& expr);
+class ErrorHandler{
+
+public:
+    ErrorHandler(std::ifstream& currentFile);
+    void reportError(const std::string& errorMsg) const;
+    void reportError(const std::string& erroMsg, const int lineNum) const;
+    void reportError(const std::string& errorMsg, const Token& token) const;
+
+private:
+    std::ifstream& m_currentFile;
+};
 
 namespace error{
     constexpr const char* INVALID_RETURN = "Function return expression does not match function return type.";

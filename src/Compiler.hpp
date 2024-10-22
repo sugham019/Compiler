@@ -2,6 +2,7 @@
 
 #include "IRGenerator.hpp"
 #include <filesystem>
+#include <fstream>
 #include <string>
 #include <list>
 
@@ -20,10 +21,11 @@ public:
 private:
     void performIRGeneration(const ast::File& file, const std::string& filename);
     ast::File generateAST(const std::filesystem::path& srcFilepath);
-    
+
     const std::string commonLibs = "";
     const std::string linuxLibs = "liblinux.a";
     const std::string winLibs = "";
+
     IRGenerator& m_irGenerator;
     std::list<std::string> m_files;
 };

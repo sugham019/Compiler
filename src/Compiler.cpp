@@ -1,5 +1,6 @@
 #include "Compiler.hpp"
 #include "AST.hpp"
+#include "Analyzer.hpp"
 #include "ErrorHandler.hpp"
 #include <cstdio>
 #include "IRGenerator.hpp"
@@ -11,6 +12,7 @@ Compiler::Compiler(IRGenerator& irGenerator) : m_irGenerator(irGenerator){
 }
 
 void Compiler::compileToIR(const std::filesystem::path& srcFilepath, const std::filesystem::path& outputFilepath){
+
     ast::File syntaxTree = generateAST(srcFilepath);
     performIRGeneration(syntaxTree, srcFilepath.filename().string());
     m_irGenerator.saveToFile(outputFilepath);
@@ -32,9 +34,19 @@ void Compiler::buildExec(const std::string& irFilePath, const std::string& outpu
 }
 
 ast::File Compiler::generateAST(const std::filesystem::path& srcFilepath){
-    Tokenizer tokenizer(srcFilepath.string());
-    Parser parser(tokenizer);
-    return parser.evaluate();
+
+    std::ifstream srcFile(srcFilepath.string());
+
+    if(!srcFile){
+        std::cerr << "Could not open file : "+ srcFilepath.string() << std::endl;
+    }
+    const ErrorHandler errorHandler(srcFile);
+    Tokenizer tokenizer(srcFile, errorHandler);
+    Parser parser(tokenizer, errorHandler);
+    ast::File syntaxTree = parser.evaluate();
+    Analyzer analyzer(syntaxTree, errorHandler);
+    analyzer.analyze();
+    return syntaxTree;
 }
 
 void Compiler::performIRGeneration(const ast::File& file, const std::string& filename){

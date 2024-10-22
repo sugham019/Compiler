@@ -25,12 +25,17 @@ SymbolTable SymbolTableHandler::standardLibFuncSymbols = {
     {"getNextChar", createFunctionSymbol(Keyword::CHAR, std::vector<Keyword>())}
 };
 
+SymbolTableHandler::SymbolTableHandler(const ErrorHandler& errorHandler)
+    : m_errorHandler(errorHandler){
+
+}
+
 void SymbolTableHandler::updateSymbolTable(ast::Function& function){
     SymbolTable& symbolTable = m_symbolTableList.front();
     Token& identifierToken = *function.m_identifier;
     const std::string_view identifier(identifierToken.m_value, identifierToken.m_valueSize);
     if(functionSymbolExists(identifier)){
-        reportError(error::DUPLICATE_FUNC, identifierToken);
+        m_errorHandler.reportError(error::DUPLICATE_FUNC, identifierToken);
     }
     Keyword returnType = function.m_returnType->m_tokenType.keywordType;
     SymbolTableEntry entry = {SymbolType::FUNCTION, returnType,false, false,false};
@@ -51,7 +56,7 @@ void SymbolTableHandler::updateSymbolTable(ast::DeclarativeStatement& declarativ
     Token& identifierToken = *declarativeStatement.m_identifier;
     const std::string_view identifier(identifierToken.m_value, identifierToken.m_valueSize);
     if(variableSymbolExists(identifier)){
-        reportError(error::DUPLICATE_VAR, identifierToken);
+        m_errorHandler.reportError(error::DUPLICATE_VAR, identifierToken);
     }
     bool isInitialized = (declarativeStatement.m_expression != nullptr) ? true : false;
     TokenType::KeywordType dataType = declarativeStatement.m_dataType->m_tokenType.keywordType;

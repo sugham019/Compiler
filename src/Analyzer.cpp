@@ -10,8 +10,8 @@
 #include <utility>
 
 
-Analyzer::Analyzer(ast::File& syntaxTree)
-    : m_syntaxTree(syntaxTree){
+Analyzer::Analyzer(ast::File& syntaxTree, const ErrorHandler& errorHandler)
+    : m_syntaxTree(syntaxTree), m_errorHandler(errorHandler), m_symbolTableHandler(errorHandler){
 }
 
 void Analyzer::analyze(){
@@ -20,9 +20,9 @@ void Analyzer::analyze(){
         const std::string_view functionName(function.m_identifier->m_value, function.m_identifier->m_valueSize);
         if(functionName == "main" ){
             if(!function.m_parameters.empty()){
-                reportError(error::MAIN_FUNC_PARAM, *function.m_identifier);
+                m_errorHandler.reportError(error::MAIN_FUNC_PARAM, *function.m_identifier);
             }else if(function.m_returnType->m_tokenType.keywordType != Keyword::INT){
-                reportError("Main function should return int", *function.m_returnType);
+                m_errorHandler.reportError("Main function should return int", *function.m_returnType);
             }
         }
         m_symbolTableHandler.createSymbolTable();
@@ -38,7 +38,7 @@ void Analyzer::analyze(){
            analyzeStatement(*statement, function);
         }
         if(!returnStatementFound){
-            reportError(error::EXPECTED_RETURN, *function.m_returnType);
+            m_errorHandler.reportError(error::EXPECTED_RETURN, *function.m_returnType);
         }
         m_symbolTableHandler.popSymbolTabe();
     };
@@ -88,7 +88,7 @@ Keyword Analyzer::analyzeFunctionCallStatement(ast::FunctionCallStatement& funct
     const std::string_view identifier(functionIdentifier.m_value, functionIdentifier.m_valueSize);
     auto result = m_symbolTableHandler.findFunctionSymbol(identifier);
     if(result.first == false){
-        reportError(error::FUCTION_NOT_FOUND, functionIdentifier);
+        m_errorHandler.reportError(error::FUCTION_NOT_FOUND, functionIdentifier);
     }
     auto isArgsAndParamEqual = [&] (std::list<ast::Expression*>& args, std::vector<Keyword>& params)->bool{
         if(args.size() != params.size()){
@@ -105,7 +105,7 @@ Keyword Analyzer::analyzeFunctionCallStatement(ast::FunctionCallStatement& funct
         return true;
     };
     if(!isArgsAndParamEqual(functionCallStatement.m_args, result.second.paramTypes)){
-        reportError(error::ARGS_PARAM_ERROR, functionIdentifier);
+        m_errorHandler.reportError(error::ARGS_PARAM_ERROR, functionIdentifier);
     }
     return result.second.dataType;
 }
@@ -135,19 +135,19 @@ void Analyzer::performTypeChecking(ast::Factor& factor, Keyword expectedDataType
     auto checkIfValueTypeIsCompatible = [&](Token& value, Keyword expectedType){
         if(value.m_tokenType.type == Type::NUMERIC_LITERAL){
             if(expectedType != Keyword::INT && expectedType != Keyword::FLOAT){
-                reportError(error::INVALID_EXPR, value);
+                m_errorHandler.reportError(error::INVALID_EXPR, value);
             }
         }else if(value.m_tokenType.type == Type::STRING_LITERAL){
             if(expectedType != Keyword::CHAR){
-                reportError(error::INVALID_EXPR, value);
+                m_errorHandler.reportError(error::INVALID_EXPR, value);
             }
             if(value.m_valueSize > 1){
-                reportError(error::CHAR_LENGTH_EXCEED, value);
+                m_errorHandler.reportError(error::CHAR_LENGTH_EXCEED, value);
             }
         }else if(value.m_tokenType == Type::IDENTIFIER){
             Keyword dataType = findVariableType(value);
             if(dataType != expectedDataType){
-                reportError(error::INVALID_EXPR, value);
+                m_errorHandler.reportError(error::INVALID_EXPR, value);
             }
         }
     };
@@ -161,7 +161,7 @@ void Analyzer::performTypeChecking(ast::Factor& factor, Keyword expectedDataType
         case ast::Factor::OperandType::FUNCTION_CALL:
             Keyword functionReturnType = analyzeFunctionCallStatement(*factor.operand.functionCall);
             if(functionReturnType != expectedDataType){
-                reportError(error::UNEXPECTED_RETURN, *factor.operand.functionCall->m_identifier);
+                m_errorHandler.reportError(error::UNEXPECTED_RETURN, *factor.operand.functionCall->m_identifier);
             }
             break;
     }
@@ -171,7 +171,7 @@ Keyword Analyzer::findVariableType(Token& identifier){
     std::string_view varName(identifier.m_value, identifier.m_valueSize);
     auto symbolEntry = m_symbolTableHandler.findVariableSymbol(varName);
     if(symbolEntry.first == false){
-        reportError(error::VARIABLE_NOT_FOUND, identifier);
+        m_errorHandler.reportError(error::VARIABLE_NOT_FOUND, identifier);
     }
     return symbolEntry.second.dataType;
 }

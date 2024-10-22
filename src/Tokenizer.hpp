@@ -1,5 +1,6 @@
 #pragma once
 #include "Token.hpp"
+#include <filesystem>
 #include <fstream>
 #include <cctype>
 #include <fstream>
@@ -13,12 +14,14 @@
 class Tokenizer{
 
 public:
-    Tokenizer(const std::string& file);
+    Tokenizer(std::ifstream& file, const ErrorHandler& errorHandler);
     Token nextToken();
     Token peekToken();
 
+
+    static std::ifstream* activeFile;
+
 private:
-    void loadFileData(const std::string& filename);
     void skipSpaces();
     bool processStringLiteral(Token& tokenData);
     bool processNumericLiteral(Token& tokenData);
@@ -29,7 +32,7 @@ private:
 
     void updateBuffer(char ch){
         if(m_bufferLength == m_maxBufferLength){
-            reportError("Token Length limit exceeded", m_file);
+            m_errorHandler.reportError("Token Length limit exceeded", m_currentLineNum);
         }
         m_buffer[m_bufferLength++] = ch;
     }
@@ -40,7 +43,8 @@ private:
         }
     }
 
-    std::ifstream m_file;
+    const ErrorHandler& m_errorHandler;
+    std::ifstream& m_file;
     const std::string m_filename;
     u_int32_t m_currentLineNum = 1;
     static constexpr int m_maxBufferLength = 512;
