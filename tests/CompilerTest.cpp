@@ -12,5 +12,6 @@ TEST(CompilerTest, compilerTest){
     LlvmIRGenerator llvmIRGenerator("test");
     Compiler compiler(llvmIRGenerator);
 
-    compiler.compile("testfile", "outputfile");
+    compiler.compileToIR("testfile", "outputfile");
+    compiler.buildExec("outputfile", "myprogram", Platform::LINUX);
 }
