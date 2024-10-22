@@ -16,6 +16,7 @@ void Compiler::compileToIR(const std::filesystem::path& srcFilepath, const std::
     ast::File syntaxTree = generateAST(srcFilepath);
     performIRGeneration(syntaxTree, srcFilepath.filename().string());
     m_irGenerator.saveToFile(outputFilepath);
+    syntaxTree.free();
 }
 
 void Compiler::buildExec(const std::string& irFilePath, const std::string& outputfile,  Platform platform){
