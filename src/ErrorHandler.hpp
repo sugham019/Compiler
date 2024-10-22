@@ -34,5 +34,6 @@ namespace error{
     constexpr const char* EXPECTED_RETURN = "Expected return statement at the end of function";
     constexpr const char* MAIN_FUNC_RET = "Main function should return int";
     constexpr const char* INV_TOKEN = "Invalid token";
+    constexpr const char* LOGICAL_ERR = "Expected boolean expression in either side of Logical operator";
 };
 

@@ -21,7 +21,9 @@ void ErrorHandler::reportError(const std::string& errorMsg, const int lineNum) c
         int i = 1;
         char ch;
         while(file.get(ch)){
-            if(i == lineNum) break;
+            if(i >= lineNum){
+                break;
+            }
             if(ch == '\n'){
                 i++;
             }
@@ -31,28 +33,29 @@ void ErrorHandler::reportError(const std::string& errorMsg, const int lineNum) c
     auto getLineText = [](std::ifstream& file, std::string& buffer){
         char ch;
         while(file.get(ch)){
-            buffer += ch;
             if(ch == '\n'){
                 break;
             }
+            buffer += ch;
         }
     };
+
     moveToLine(m_currentFile, lineNum-3);
     std::string text = "\n\n";
     text.reserve(1000);
 
-    for(int i=lineNum-2; i<lineNum+3;i++){
+    for(int i=lineNum-3; i<lineNum+2;i++){
         if(i == lineNum){
-            text += "\033[31m";
-            text += std::to_string(i) + "\t";
+            text += "\033[31m" + std::to_string(i) + "\t";
             getLineText(m_currentFile, text);
-            text += "\033[0m";
+            text += "\033[0m\n";
         }else{
             text += std::to_string(i) + "\t";
             getLineText(m_currentFile, text);
+            text += "\n";
         }   
     }
-    text += "\n\n\n"+errorMsg;
+    text += "\n\n\n"+errorMsg+"\n";
 
     std::cerr << text << std::endl;
     std::exit(EXIT_FAILURE);
