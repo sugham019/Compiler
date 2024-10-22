@@ -19,18 +19,16 @@ private:
     void analyzeAssignmentStatement(ast::AssignmentStatement& assignmentStatement);
     Keyword analyzeFunctionCallStatement(ast::FunctionCallStatement& functionCallStatement);
     void analyzeReturnStatement(ast::ReturnStatement& returnStatement, ast::Function& currentFunction);
+    void analyzeNestedScope(std::list<ast::Statement*> stmnts, ast::Function& currentFunction);
+    void analyzeWhileLoop(ast::WhileLoop& whileLoop, ast::Function& currentFunction);
     void performTypeChecking(ast::DeclarativeStatement& declarativeStatement);
     void performTypeChecking(ast::ReturnStatement& returnStatement, ast::Function& function);
     void performTypeChecking(ast::AssignmentStatement& assignmentStatement);
     void performTypeChecking(ast::FunctionCallStatement& functionCallStatement);
     void performTypeChecking(ast::Expression& expression, Keyword expectedDataType);
-    void performTypeChecking(ast::ExpressionTail& expressionTail, Keyword expectedDataType);
     void performTypeChecking(ast::Relational& relational, Keyword expectedDataType);
-    void performTypeChecking(ast::RelationalTail& relelationalTail, Keyword expectedDataType);
     void performTypeChecking(ast::Additive& additive, Keyword expectedDataType);
-    void performTypeChecking(ast::AdditiveTail& additiveTail, Keyword expectedDataType);
     void performTypeChecking(ast::Term& term, Keyword expectedDataType);
-    void performTypeChecking(ast::TermTail& termTail, Keyword expectedDataType);
     void performTypeChecking(ast::Factor& additive, Keyword expectedDataType);
     void performTypeChecking(ast::Statement& statement, ast::Function& function);
 

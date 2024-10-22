@@ -15,7 +15,8 @@ Analyzer::Analyzer(ast::File& syntaxTree, const ErrorHandler& errorHandler)
 }
 
 void Analyzer::analyze(){
-    m_symbolTableHandler.createSymbolTable(); // create top symbol table for functions
+    m_symbolTableHandler.createSymbolTable(); 
+    
     auto evaluateFunction = [&](ast::Function& function){
         const std::string_view functionName(function.m_identifier->m_value, function.m_identifier->m_valueSize);
         if(functionName == "main" ){
@@ -64,16 +65,19 @@ void Analyzer::analyzeAssignmentStatement(ast::AssignmentStatement& assignmentSt
 }
 
 void Analyzer::analyzeConditionalStatement(ast::ConditionalStatement& conditionalStatement, ast::Function& currentFunction){
-    m_symbolTableHandler.createSymbolTable();
-    
-    for(auto statement: conditionalStatement.m_stmnts){
-        analyzeStatement(*statement, currentFunction);
-    }
-    m_symbolTableHandler.popSymbolTabe();
+    analyzeNestedScope(conditionalStatement.m_stmnts, currentFunction);
     if(conditionalStatement.m_else != nullptr){
         analyzeConditionalStatement(*conditionalStatement.m_else, currentFunction);
     }
 }   
+
+void Analyzer::analyzeNestedScope(std::list<ast::Statement*> stmnts, ast::Function& currentFunction){
+    m_symbolTableHandler.createSymbolTable();
+    for(auto statement: stmnts){
+        analyzeStatement(*statement, currentFunction);
+    }
+    m_symbolTableHandler.popSymbolTabe();
+}
 
 void Analyzer::analyzeReturnStatement(ast::ReturnStatement& returnStatement, ast::Function& currentFunction){
     if(returnStatement.m_expr == nullptr){
@@ -81,6 +85,10 @@ void Analyzer::analyzeReturnStatement(ast::ReturnStatement& returnStatement, ast
     }
     Keyword expectedType = currentFunction.m_returnType->m_tokenType.keywordType;
     performTypeChecking(*returnStatement.m_expr, expectedType);
+}
+
+void Analyzer::analyzeWhileLoop(ast::WhileLoop& whileLoop, ast::Function& currentFunction){
+    analyzeNestedScope(whileLoop.m_stmnts, currentFunction);
 }
 
 Keyword Analyzer::analyzeFunctionCallStatement(ast::FunctionCallStatement& functionCallStatement){
@@ -126,8 +134,11 @@ void Analyzer::analyzeStatement(ast::Statement& statement, ast::Function& curren
             break;
         case ast::Statement::Type::RETURN:
             analyzeReturnStatement(*statement.m_data.returnStatement, currentFunction);
-            break;   
-    }
+            break;
+        case ast::Statement::Type::WHILE_LOOP:
+            analyzeWhileLoop(*statement.m_data.whileLoop);
+            break;
+        }
 }
 
 void Analyzer::performTypeChecking(ast::Factor& factor, Keyword expectedDataType){
@@ -183,59 +194,43 @@ void Analyzer::performTypeChecking(ast::DeclarativeStatement& declarativeStateme
     }
 }
 
+
 void Analyzer::performTypeChecking(ast::Expression& expression, Keyword expectedDataType){
     performTypeChecking(*expression.m_relational, expectedDataType);
-    if(expression.m_expressionTail != nullptr){
-        performTypeChecking(*expression.m_expressionTail, expectedDataType);
-    }
-}
 
-void Analyzer::performTypeChecking(ast::ExpressionTail& expressionTail, Keyword expectedDataType){
-    performTypeChecking(*expressionTail.m_relational, expectedDataType);
-    if(expressionTail.m_expressionTail != nullptr){
-        performTypeChecking(*expressionTail.m_expressionTail, expectedDataType);
+    ast::ExpressionTail* exprTail = expression.m_expressionTail;
+    while(exprTail != nullptr){
+        performTypeChecking(*exprTail->m_relational, expectedDataType);
+        exprTail = exprTail->m_expressionTail;
     }
-
 }
 
 void Analyzer::performTypeChecking(ast::Relational& relational, Keyword expectedDataType){
     performTypeChecking(*relational.m_additive, expectedDataType);
-    if(relational.m_relationalTail != nullptr){
-        performTypeChecking(*relational.m_relationalTail, expectedDataType);
-    }
-}
 
-void Analyzer::performTypeChecking(ast::RelationalTail& relationalTail, Keyword expectedDataType){
-    performTypeChecking(*relationalTail.m_additive, expectedDataType);
-    if(relationalTail.m_relationalTail != nullptr){
-        performTypeChecking(*relationalTail.m_relationalTail,expectedDataType); 
+    ast::RelationalTail* relationalTail = relational.m_relationalTail;
+    while(relationalTail != nullptr){
+        performTypeChecking(*relationalTail->m_additive, expectedDataType);
+        relationalTail = relationalTail->m_relationalTail;
     }
 }
 
 void Analyzer::performTypeChecking(ast::Additive& additive, Keyword expectedDataType){
     performTypeChecking(*additive.m_term, expectedDataType);
-    if(additive.m_additiveTail != nullptr){
-        performTypeChecking(*additive.m_additiveTail, expectedDataType);
-    }
-}
 
-void Analyzer::performTypeChecking(ast::AdditiveTail& additiveTail, Keyword expectedDataType){
-    performTypeChecking(*additiveTail.m_term, expectedDataType);
-    if(additiveTail.m_additiveTail != nullptr){
-        performTypeChecking(*additiveTail.m_additiveTail, expectedDataType);
+    ast::AdditiveTail* additiveTail = additive.m_additiveTail;
+    while(additiveTail != nullptr){
+        performTypeChecking(*additiveTail->m_term, expectedDataType);
+        additiveTail = additiveTail->m_additiveTail;
     }
 }
 
 void Analyzer::performTypeChecking(ast::Term& term, Keyword expectedDataType){
     performTypeChecking(*term.m_factor, expectedDataType);
-    if(term.m_termTail != nullptr){
-        performTypeChecking(*term.m_termTail, expectedDataType);
-    }
-}
 
-void Analyzer::performTypeChecking(ast::TermTail& termTail, Keyword expectedDataType){
-    performTypeChecking(*termTail.m_factor, expectedDataType);
-    if(termTail.m_termTail != nullptr){
-        performTypeChecking(*termTail.m_termTail, expectedDataType);
+    ast::TermTail* termTail = term.m_termTail;
+    while(termTail != nullptr){
+        performTypeChecking(*termTail->m_factor, expectedDataType);
+        termTail = termTail->m_termTail;
     }
 }
