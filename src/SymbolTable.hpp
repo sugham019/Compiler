@@ -6,7 +6,7 @@
 #include "AST.hpp"
 #include <unordered_map>
 
-enum class SymbolType: u_int8_t{
+enum class SymbolType: uint8_t{
     FUNCTION,
     VARIABLE
 };

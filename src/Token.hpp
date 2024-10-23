@@ -1,10 +1,11 @@
 #pragma once
+#include <cstdint>
 #include <sys/types.h>
 #include <utility>
 
 struct TokenType{
 
-    enum class Type : u_int8_t{
+    enum class Type : uint8_t{
         KEYWORD,
         SYMBOL,
         STRING_LITERAL,
@@ -13,7 +14,7 @@ struct TokenType{
         NIL
     }type = Type::NIL;
 
-    enum KeywordType : u_int8_t{
+    enum KeywordType : uint8_t{
         INT,
         CHAR,
         VOID,
@@ -53,9 +54,9 @@ using Type = TokenType::Type;
 struct Token{
 
     char* m_value = nullptr;
-    u_int32_t m_lineNumber;
+    uint32_t m_lineNumber;
     TokenType m_tokenType;
-    u_int16_t m_valueSize = 0;
+    uint16_t m_valueSize = 0;
     
     Token() noexcept = default;
     

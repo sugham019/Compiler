@@ -46,8 +46,8 @@ private:
     const ErrorHandler& m_errorHandler;
     std::ifstream& m_file;
     const std::string m_filename;
-    u_int32_t m_currentLineNum = 1;
+    uint32_t m_currentLineNum = 1;
     static constexpr int m_maxBufferLength = 512;
     char m_buffer[m_maxBufferLength];
-    u_int16_t m_bufferLength = 0;
+    uint16_t m_bufferLength = 0;
 };
