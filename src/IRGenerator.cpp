@@ -141,13 +141,23 @@ llvm::Value* LlvmIRGenerator::getFactor(ast::Factor& factor){
 llvm::Value* LlvmIRGenerator::computeTerm(ast::Term& term){
     llvm::Value* lhs = getFactor(*term.m_factor);
     ast::TermTail* termTail = term.m_termTail;
+    bool isFloat = false;
+    if(lhs->getType()->isFloatingPointTy()){
+        isFloat = true;
+    }
     while(termTail != nullptr){
         llvm::Value* rhs = getFactor(*termTail->m_factor);
         ast::Opcode opcode = termTail->m_opcode;
         if(opcode == ast::Opcode::MULTIPLICATION){
-            lhs = m_IRBuilder->CreateMul(lhs, rhs);
+            if(isFloat)
+                lhs = m_IRBuilder->CreateFMul(lhs, rhs);
+            else
+                lhs = m_IRBuilder->CreateSub(lhs, rhs);
         }else if(opcode == ast::Opcode::DIVISION){
-            lhs = m_IRBuilder->CreateSDiv(lhs, rhs);
+            if(isFloat)
+                lhs = m_IRBuilder->CreateFDiv(lhs, rhs);
+            else
+                lhs = m_IRBuilder->CreateSDiv(lhs, rhs);
         }
         termTail = termTail->m_termTail;
     }
@@ -157,13 +167,25 @@ llvm::Value* LlvmIRGenerator::computeTerm(ast::Term& term){
 llvm::Value* LlvmIRGenerator::computeAdditive(ast::Additive& additive){
     llvm::Value* lhs = computeTerm(*additive.m_term);
     ast::AdditiveTail* additiveTail = additive.m_additiveTail;
+    bool isFloat = false;
+    if(lhs->getType()->isFloatingPointTy()){
+        isFloat = true;
+    }
     while(additiveTail != nullptr){
         llvm::Value* rhs = computeTerm(*additiveTail->m_term);
         ast::Opcode opcode = additiveTail->m_opcode;
         if(opcode == ast::Opcode::ADDITION){
-            lhs = m_IRBuilder->CreateAdd(lhs, rhs);
+            if(isFloat)
+                lhs = m_IRBuilder->CreateFAdd(lhs, rhs);
+            else
+                lhs = m_IRBuilder->CreateAdd(lhs, rhs);
+            
         }else if(opcode == ast::Opcode::SUBTRACTION){
-            lhs = m_IRBuilder->CreateSub(lhs , rhs);
+            if(isFloat)
+                lhs = m_IRBuilder->CreateFSub(lhs, rhs);
+            else
+                lhs = m_IRBuilder->CreateSub(lhs, rhs);
+            
         }
         additiveTail = additiveTail->m_additiveTail;
     }

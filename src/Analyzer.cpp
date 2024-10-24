@@ -185,7 +185,9 @@ void Analyzer::performTypeChecking(ast::Factor& factor, Keyword expectedDataType
 
     auto checkIfValueTypeIsCompatible = [&](Token& value, Keyword expectedType){
         if(value.m_tokenType.type == Type::NUMERIC_LITERAL){
-            if(expectedType != Keyword::INT && expectedType != Keyword::FLOAT){
+            if(value.m_tokenType.isFloatingPointValue && expectedType != Keyword::FLOAT){
+                m_errorHandler.reportError(error::INVALID_EXPR, value);
+            }else if(!value.m_tokenType.isFloatingPointValue && expectedDataType != Keyword::INT){
                 m_errorHandler.reportError(error::INVALID_EXPR, value);
             }
         }else if(value.m_tokenType.type == Type::STRING_LITERAL){
