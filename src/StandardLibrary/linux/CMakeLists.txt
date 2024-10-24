@@ -1,5 +1,5 @@
 set(this 
-    liblinux
+    stdlinux
 )
 
 set(Src 
