@@ -96,10 +96,11 @@ Keyword Analyzer::findFirstValueType(ast::Expression& expression){
 
 
 void Analyzer::analyzeConditionalStatement(ast::ConditionalStatement& conditionalStatement, ast::Function& currentFunction){
-    ast::Expression& expr = *conditionalStatement.m_expr;
-    Keyword expectedType = findFirstValueType(expr);
-    performTypeChecking(expr, expectedType);
-
+    if(conditionalStatement.m_expr != nullptr){
+        ast::Expression& expr = *conditionalStatement.m_expr;
+        Keyword expectedType = findFirstValueType(expr);
+        performTypeChecking(expr, expectedType);
+    }
     analyzeNestedScope(conditionalStatement.m_stmnts, currentFunction);
     if(conditionalStatement.m_else != nullptr){
         analyzeConditionalStatement(*conditionalStatement.m_else, currentFunction);
