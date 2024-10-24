@@ -5,20 +5,20 @@
 #include <cstdlib>
 #include <filesystem>
 #include <iostream>
-#include <llvm-18/llvm/ADT/StringRef.h>
-#include <llvm-18/llvm/IR/Argument.h>
+#include <llvm/ADT/StringRef.h>
+#include <llvm/IR/Argument.h>
 #include <string>
-#include <llvm-18/llvm/ADT/ArrayRef.h>
-#include <llvm-18/llvm/IR/BasicBlock.h>
-#include <llvm-18/llvm/IR/Constants.h>
-#include <llvm-18/llvm/IR/DerivedTypes.h>
-#include <llvm-18/llvm/IR/Function.h>
-#include <llvm-18/llvm/IR/GlobalValue.h>
-#include <llvm-18/llvm/IR/IRBuilder.h>
-#include <llvm-18/llvm/IR/Instructions.h>
-#include <llvm-18/llvm/IR/Value.h>
+#include <llvm/ADT/ArrayRef.h>
+#include <llvm/IR/BasicBlock.h>
+#include <llvm/IR/Constants.h>
+#include <llvm/IR/DerivedTypes.h>
+#include <llvm/IR/Function.h>
+#include <llvm/IR/GlobalValue.h>
+#include <llvm/IR/IRBuilder.h>
+#include <llvm/IR/Instructions.h>
+#include <llvm/IR/Value.h>
 #include <llvm/Support/raw_ostream.h>
-#include <llvm-18/llvm/IR/LLVMContext.h>
+#include <llvm/IR/LLVMContext.h>
 #include <memory>
 #include <string>
 
@@ -259,12 +259,13 @@ void LlvmIRGenerator::genInstruction(ast::ReturnStatement& returnStatment){
     return value;
  }
 
- void LlvmIRGenerator::genInstruction(ast::ConditionalStatement& conditionalStatement){
+ void LlvmIRGenerator::genInstruction(ast::ConditionalStatement& conditionalStatement, llvm::BasicBlock* finalBlock){
     llvm::Value* conditionExpr = computeExpression(*conditionalStatement.m_expr);
     llvm::BasicBlock* initialBlock = m_IRBuilder->GetInsertBlock();
     llvm::Function* currentFunc = initialBlock->getParent();
     llvm::BasicBlock* onTrue = llvm::BasicBlock::Create(*llvmContext, "onTrue", currentFunc);
-    llvm::BasicBlock* finalBlock = llvm::BasicBlock::Create(*llvmContext, "finalBlock", currentFunc);
+    if(finalBlock== nullptr)
+        finalBlock = llvm::BasicBlock::Create(*llvmContext, "finalBlock", currentFunc);
 
     auto fillInstructions = [&](std::list<ast::Statement*>& stmnts){
         bool hasReturnStatement = false;
@@ -288,7 +289,7 @@ void LlvmIRGenerator::genInstruction(ast::ReturnStatement& returnStatment){
         m_IRBuilder->CreateCondBr(conditionExpr, onTrue, onFalse);
         m_IRBuilder->SetInsertPoint(onFalse);
         if(conditionalStatement.m_else->m_expr != nullptr){
-            genInstruction(*conditionalStatement.m_else);
+            genInstruction(*conditionalStatement.m_else, finalBlock);
         }else{
             fillInstructions(conditionalStatement.m_else->m_stmnts);
         }
@@ -335,7 +336,7 @@ void LlvmIRGenerator::genInstruction(ast::Statement& statement){
             genInstruction(*statement.m_data.assignmentStatement);
             break;
         case ast::Statement::Type::CONDITIONAL:
-            genInstruction(*statement.m_data.conditionalStatement);
+            genInstruction(*statement.m_data.conditionalStatement, nullptr);
             break;
         case ast::Statement::Type::FUNCTION_CALL:
             genInstruction(*statement.m_data.functionalCallStatement);
