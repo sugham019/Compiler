@@ -23,7 +23,7 @@ private:
     ast::File generateAST(const std::filesystem::path& srcFilepath);
 
     const std::string commonLibs = "";
-    const std::string linuxLibs = "liblinux.a";
+    const std::string linuxLibs = "libstdlinux.a";
     const std::string winLibs = "";
 
     IRGenerator& m_irGenerator;
