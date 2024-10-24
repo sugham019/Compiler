@@ -170,7 +170,7 @@ struct Statement{
         WhileLoop* whileLoop;
     } m_data;
 
-    enum class Type: u_int8_t{
+    enum class Type: uint8_t{
         DECLARATIVE,
         ASSIGNMENT,
         CONDITIONAL,
@@ -225,6 +225,9 @@ struct Statement{
                 break;
             case Type::RETURN:
                 delete m_data.returnStatement;
+                break;
+            case Type::WHILE_LOOP:
+                delete m_data.whileLoop;
                 break;
             }
     }

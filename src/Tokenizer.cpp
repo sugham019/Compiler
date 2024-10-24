@@ -1,8 +1,6 @@
 #include "Tokenizer.hpp"
 #include "ErrorHandler.hpp"
 
-std::ifstream* Tokenizer::activeFile;
-
 Tokenizer::Tokenizer(std::ifstream& file, const ErrorHandler& errorHandler) 
     : m_file(file), m_errorHandler(errorHandler){
 

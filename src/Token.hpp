@@ -60,7 +60,7 @@ struct Token{
     
     Token() noexcept = default;
     
-    Token(TokenType tokenType, char* value, u_int16_t valueSize, u_int32_t lineNumber) noexcept
+    Token(TokenType tokenType, char* value, uint16_t valueSize, uint32_t lineNumber) noexcept
             :m_tokenType(tokenType), m_value(value), m_valueSize(valueSize), m_lineNumber(lineNumber){
     }
 

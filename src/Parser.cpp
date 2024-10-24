@@ -336,7 +336,7 @@ Factor* Parser::evaluateFactor(Token* tokens, int start, int end){
 }
 
 Term* Parser::evaluateTerm(Token* tokens, int start, int end){
-    u_int16_t bracketLevel = 0;
+    uint16_t bracketLevel = 0;
     Term* term = new Term();
     Factor** factorPtr = &term->m_factor;
     TermTail** termTailPtr = &term->m_termTail;
@@ -372,7 +372,7 @@ Term* Parser::evaluateTerm(Token* tokens, int start, int end){
 
 
 Additive* Parser::evaluateAdditive(Token* tokens, int start, int end){
-    u_int16_t bracketLevel = 0;
+    uint16_t bracketLevel = 0;
     Additive* additive = new Additive();
     Term** termPtr = &additive->m_term;
     AdditiveTail** additiveTailPtr = &additive->m_additiveTail;
@@ -407,7 +407,7 @@ Additive* Parser::evaluateAdditive(Token* tokens, int start, int end){
 }
 
 Relational* Parser::evaluateRelational(Token* tokens, int start, int end){
-    u_int16_t bracketLevel = 0;
+    uint16_t bracketLevel = 0;
     Relational* relational = new Relational();
     Additive** additivePtr = &relational->m_additive;
     RelationalTail** relationalTailPtr = &relational->m_relationalTail;
@@ -462,7 +462,7 @@ Relational* Parser::evaluateRelational(Token* tokens, int start, int end){
 
 
 Expression* Parser::evaluateExpression(Token* tokens, int start, int end){
-    u_int16_t bracketLevel = 0;
+    uint16_t bracketLevel = 0;
     Expression* expression = new Expression();
     Relational** relationalPtr = &expression->m_relational;
     ExpressionTail** exprTailPtr = &expression->m_expressionTail;
