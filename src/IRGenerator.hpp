@@ -2,9 +2,9 @@
 #include "AST.hpp"
 #include "SymbolTableHandler.hpp"
 #include <filesystem>
-#include <llvm-18/llvm/IR/BasicBlock.h>
-#include <llvm-18/llvm/IR/Function.h>
-#include <llvm-18/llvm/IR/Instructions.h>
+#include <llvm/IR/BasicBlock.h>
+#include <llvm/IR/Function.h>
+#include <llvm/IR/Instructions.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Module.h>
 #include <llvm/IR/IRBuilder.h>
@@ -43,7 +43,7 @@ private:
     void genInstruction(ast::DeclarativeStatement& declarativeStatement);
     void genInstruction(ast::AssignmentStatement& declarativeStatement);
     void genInstruction(ast::ReturnStatement& returnStatement);
-    void genInstruction(ast::ConditionalStatement& conditionalStatement);
+    void genInstruction(ast::ConditionalStatement& conditionalStatement, llvm::BasicBlock* finalBlock);
     void genInstruction(ast::WhileLoop& whileLoop);
     llvm::Value* genInstruction(ast::FunctionCallStatement& functionCallStatement);
 
