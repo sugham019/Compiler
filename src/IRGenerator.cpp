@@ -127,7 +127,6 @@ llvm::Value* LlvmIRGenerator::getFactor(ast::Factor& factor){
                     llvm::LoadInst* loadValue = m_IRBuilder->CreateLoad(type, it->second, "loadValue");
                     return loadValue;
                 }
-                llvm::Value* value = fetchLiteralValue(valueToken);
                 return fetchLiteralValue(valueToken);
             }
         case ast::Factor::OperandType::EXPR:
